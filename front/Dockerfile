@@ -25,8 +25,8 @@ RUN npm install -g serve
 COPY --from=builder /app/dist ./dist
 COPY serve.json ./serve.json
 
-ENV PORT=80
-EXPOSE 80
+ENV PORT=8080
+EXPOSE 8080
 
-# 动态绑定 Railway 注入的端口并使用 serve.json
-CMD ["sh", "-c", "serve -c serve.json -l ${PORT:-80}"]
+# 动态绑定 Railway 注入的端口或默认 8080
+CMD ["sh", "-c", "serve -c serve.json -l ${PORT:-8080}"]
