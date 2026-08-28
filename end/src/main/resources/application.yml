@@ -9,9 +9,9 @@ spring:
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://${MYSQLHOST:localhost}:${MYSQLPORT:${MYSQL_TCP_PORT:3306}}/${MYSQLDATABASE:${MYSQL_DATABASE:ncheck_db}}?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false}
-    username: ${SPRING_DATASOURCE_USERNAME:${MYSQLUSER:${MYSQL_USER:root}}}
-    password: ${SPRING_DATASOURCE_PASSWORD:${MYSQLPASSWORD:${MYSQL_ROOT_PASSWORD:123456}}}
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/ncheck_db?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false}
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${SPRING_DATASOURCE_PASSWORD:123456}
     hikari:
       maximum-pool-size: 10
       minimum-idle: 2
