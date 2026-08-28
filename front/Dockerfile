@@ -4,33 +4,28 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 
-# 接收构建参数 VITE_API_BASE_URL (可选)
-ARG VITE_API_BASE_URL=""
-ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
-
 # 安装依赖
 COPY package.json package-lock.json ./
 RUN npm ci
 
-# 构建生产产物
+# 编译 Vue 3 生产产物
 COPY . .
 RUN npm run build
 
 # ==========================================
-# 2. Production Runtime Stage
+# 2. Lightweight Cloud Runtime Stage
 # ==========================================
-FROM nginx:alpine
+FROM node:20-alpine
+WORKDIR /app
 
-# 复制自定义 Nginx 模板
-COPY nginx.conf /etc/nginx/templates/default.conf.template
+# 安装高性能轻量静态托管服务器 serve (完美支持 SPA 路由与云平台动态 PORT)
+RUN npm install -g serve
 
-# 复制打包后的 dist 静态文件
-COPY --from=builder /app/dist /usr/share/nginx/html
+# 复制打包好的 dist 产物
+COPY --from=builder /app/dist ./dist
 
-# Railway 默认端口环境变量
 ENV PORT=80
-
 EXPOSE 80
 
-# 启动时使用 envsubst 将 ${PORT} 替换到 Nginx 配置中
-CMD ["/bin/sh", "-c", "envsubst '${PORT}' < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]
+# 动态绑定 Railway 注入的端口并开启 SPA 单页重定向 (-s)
+CMD ["sh", "-c", "serve -s dist -l ${PORT:-80}"]
