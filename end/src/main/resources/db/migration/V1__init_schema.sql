@@ -18,9 +18,9 @@ CREATE TABLE IF NOT EXISTS `sys_user` (
 CREATE TABLE IF NOT EXISTS `tb_company` (
     `id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '企业主键ID',
     `user_id` BIGINT NOT NULL COMMENT '所属租户用户ID',
-    `company_code` VARCHAR(64) NOT NULL DEFAULT '' COMMENT '企业代号标识 (如 bytedance, tencent)',
+    `company_code` VARCHAR(128) NOT NULL DEFAULT '' COMMENT '企业代号标识 (如 bytedance, tencent)',
     `name` VARCHAR(128) NOT NULL COMMENT '企业名称 (如 字节跳动)',
-    `logo` VARCHAR(64) NOT NULL DEFAULT 'default' COMMENT 'Logo代号',
+    `logo` MEDIUMTEXT NULL COMMENT '企业Logo (代码/Base64/URL)',
     `industry` VARCHAR(128) NOT NULL DEFAULT '互联网' COMMENT '所属行业',
     `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '建档时间',
     `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
