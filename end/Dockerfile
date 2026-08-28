@@ -23,8 +23,6 @@ COPY --from=builder /build/target/ncheck-backend-1.0.0.jar app.jar
 
 # JVM 内存调优参数 (限制在 384MB 堆内存以内，防止 Railway 容器 OOM)
 ENV JAVA_OPTS="-Xms128m -Xmx384m -XX:+UseG1GC -Dfile.encoding=UTF-8"
-ENV PORT=8080
 
-EXPOSE 8080
-
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
+# 动态将 Railway 注入的 $PORT 传递给 Spring Boot
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -Dserver.port=${PORT:-8080} -jar app.jar"]

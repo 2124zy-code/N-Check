@@ -39,9 +39,11 @@ export async function request(url, options = {}) {
     },
   }
 
-  // 自动兼容环境变量与本地持久化的独立后端地址 (如 Railway 独立后端域名)
-  const customApiUrl = localStorage.getItem('ncheck_custom_api_url') || ''
-  const baseUrl = import.meta.env.VITE_API_BASE_URL || customApiUrl || ''
+  // 智能识别：本地开发走 /api 代理，云端部署默认直连 Railway 后端
+  const isLocalhost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+  const defaultProductionApi = 'https://n-check-production.up.railway.app'
+  const customApiUrl = typeof localStorage !== 'undefined' ? (localStorage.getItem('ncheck_custom_api_url') || '') : ''
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || customApiUrl || (isLocalhost ? '' : defaultProductionApi)
   const apiPath = url.startsWith('/api') ? url : `/api/v1${url.startsWith('/') ? url : '/' + url}`
   const fullUrl = baseUrl ? `${baseUrl.replace(/\/$/, '')}${apiPath}` : apiPath
 
