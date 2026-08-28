@@ -13,19 +13,20 @@ COPY . .
 RUN npm run build
 
 # ==========================================
-# 2. Lightweight Cloud Runtime Stage
+# 2. Production Stage (Node.js High Performance Runner)
 # ==========================================
 FROM node:20-alpine
 WORKDIR /app
 
-# 安装高性能轻量静态托管服务器 serve (完美支持 SPA 路由与云平台动态 PORT)
+# 全局安装静态服务器 serve
 RUN npm install -g serve
 
-# 复制打包好的 dist 产物
+# 复制打包后的 dist 产物与配置文件
 COPY --from=builder /app/dist ./dist
+COPY serve.json ./serve.json
 
 ENV PORT=80
 EXPOSE 80
 
-# 动态绑定 Railway 注入的端口并开启 SPA 单页重定向 (-s)
-CMD ["sh", "-c", "serve -s dist -l ${PORT:-80}"]
+# 动态绑定 Railway 注入的端口并使用 serve.json
+CMD ["sh", "-c", "serve -c serve.json -l ${PORT:-80}"]
