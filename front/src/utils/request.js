@@ -39,8 +39,9 @@ export async function request(url, options = {}) {
     },
   }
 
-  // 自动兼容环境变量中配置的独立后端地址 (如 Railway 独立后端域名)
-  const baseUrl = import.meta.env.VITE_API_BASE_URL || ''
+  // 自动兼容环境变量与本地持久化的独立后端地址 (如 Railway 独立后端域名)
+  const customApiUrl = localStorage.getItem('ncheck_custom_api_url') || ''
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || customApiUrl || ''
   const apiPath = url.startsWith('/api') ? url : `/api/v1${url.startsWith('/') ? url : '/' + url}`
   const fullUrl = baseUrl ? `${baseUrl.replace(/\/$/, '')}${apiPath}` : apiPath
 

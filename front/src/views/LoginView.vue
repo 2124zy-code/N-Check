@@ -133,6 +133,24 @@
           <span v-else>正在注册...</span>
         </button>
       </div>
+
+      <!-- 4. Cloud Deployment API Config (Collapsible) -->
+      <div class="api-config-toggle">
+        <span @click="showApiConfig = !showApiConfig" class="toggle-link">
+          <SettingOutlined /> {{ showApiConfig ? '收起后端服务器设置' : '设置云端后端服务地址' }}
+        </span>
+        <div v-if="showApiConfig" class="api-config-panel">
+          <a-input
+            v-model:value="customApiUrl"
+            size="small"
+            placeholder="例如: https://xxx.up.railway.app"
+            style="margin-bottom: 8px;"
+          />
+          <a-button size="small" type="primary" block @click="saveCustomApiUrl">
+            保存并应用后端地址
+          </a-button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -145,8 +163,23 @@ import {
   UserOutlined,
   LockOutlined,
   IdcardOutlined,
+  SettingOutlined,
 } from '@ant-design/icons-vue'
 import { useInterviewStore } from '../stores/useInterviewStore'
+
+const showApiConfig = ref(false)
+const customApiUrl = ref(localStorage.getItem('ncheck_custom_api_url') || '')
+
+function saveCustomApiUrl() {
+  const url = customApiUrl.value.trim()
+  if (url) {
+    localStorage.setItem('ncheck_custom_api_url', url)
+    message.success('后端服务地址已更新！')
+  } else {
+    localStorage.removeItem('ncheck_custom_api_url')
+    message.info('已恢复默认同源/环境变量后端地址')
+  }
+}
 
 const router = useRouter()
 const store = useInterviewStore()
@@ -382,5 +415,29 @@ async function handleRegister() {
 }
 .register-color-btn:hover:not(:disabled) {
   background: linear-gradient(135deg, #047857 0%, #059669 100%) !important;
+}
+
+.api-config-toggle {
+  margin-top: 18px;
+  text-align: center;
+}
+
+.toggle-link {
+  font-size: 12px;
+  color: var(--text-3, #94a3b8);
+  cursor: pointer;
+  transition: color 0.2s ease;
+  user-select: none;
+}
+.toggle-link:hover {
+  color: #4f46e5;
+}
+
+.api-config-panel {
+  margin-top: 10px;
+  padding: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
 }
 </style>
