@@ -35,7 +35,7 @@ public class NCheckApplication {
                 String host = uri.getHost();
                 int port = uri.getPort() == -1 ? 3306 : uri.getPort();
                 String path = uri.getPath();
-                String dbName = StringUtils.hasText(path) && path.length() > 1 ? path.substring(1) : "ncheck_db";
+                String dbName = StringUtils.hasText(path) && path.length() > 1 ? path.substring(1) : "railway";
 
                 String userInfo = uri.getUserInfo();
                 if (StringUtils.hasText(userInfo) && userInfo.contains(":")) {
@@ -44,7 +44,7 @@ public class NCheckApplication {
                     String password = parts[1];
 
                     String jdbcUrl = String.format(
-                            "jdbc:mysql://%s:%d/%s?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false",
+                            "jdbc:mysql://%s:%d/%s?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false&createDatabaseIfNotExist=true",
                             host, port, dbName
                     );
 
@@ -57,7 +57,7 @@ public class NCheckApplication {
             }
         }
 
-        // 2. 如果没有 MYSQL_URL，尝试从离散环境变量提取 (MYSQLHOST, MYSQLPORT, MYSQL_ROOT_PASSWORD, etc.)
+        // 2. 尝试从离散环境变量提取 (MYSQLHOST, MYSQLPORT, MYSQL_ROOT_PASSWORD, etc.)
         String host = getEnvAny("MYSQLHOST", "MYSQL_HOST");
         String port = getEnvAny("MYSQLPORT", "MYSQL_PORT", "MYSQL_TCP_PORT");
         String dbName = getEnvAny("MYSQLDATABASE", "MYSQL_DATABASE");
@@ -66,11 +66,11 @@ public class NCheckApplication {
 
         if (StringUtils.hasText(host) && StringUtils.hasText(password)) {
             if (!StringUtils.hasText(port)) port = "3306";
-            if (!StringUtils.hasText(dbName)) dbName = "ncheck_db";
+            if (!StringUtils.hasText(dbName)) dbName = "railway";
             if (!StringUtils.hasText(username)) username = "root";
 
             String jdbcUrl = String.format(
-                    "jdbc:mysql://%s:%s/%s?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false",
+                    "jdbc:mysql://%s:%s/%s?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false&createDatabaseIfNotExist=true",
                     host, port, dbName
             );
 
