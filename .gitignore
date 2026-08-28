@@ -1,0 +1,39 @@
+# ==========================================
+# Git Ignore Configuration for N-Check
+# ==========================================
+
+# Node / Frontend
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Java / Maven
+target/
+**/target/
+*.class
+*.jar
+*.war
+*.ear
+
+# IDE & Editor Settings
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log
+logs/
+**/logs/
+
+# Local Environment
+.env.local
+.env.*.local

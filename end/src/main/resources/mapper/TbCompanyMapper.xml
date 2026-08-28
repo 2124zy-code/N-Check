@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ncheck.mapper.TbCompanyMapper">
+
+    <!-- 聚合查询某用户的企业列表及题库统计 -->
+    <select id="selectCompanyVOListByUserId" resultType="com.ncheck.vo.CompanyVO">
+        SELECT
+            c.id,
+            c.user_id,
+            c.company_code,
+            c.name,
+            c.logo,
+            c.industry,
+            c.create_time,
+            COUNT(e.id) AS total_count,
+            COUNT(CASE WHEN e.type = '八股文' THEN 1 END) AS bagu_count,
+            COUNT(CASE WHEN e.type = '算法题' THEN 1 END) AS algo_count,
+            COUNT(CASE WHEN e.status = '已掌握' THEN 1 END) AS mastered_count
+        FROM tb_company c
+        LEFT JOIN tb_entry e ON c.id = e.company_id AND e.user_id = c.user_id
+        WHERE c.user_id = #{userId}
+        <if test="keyword != null and keyword != ''">
+            AND (c.name LIKE CONCAT('%', #{keyword}, '%') OR c.industry LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        GROUP BY c.id, c.user_id, c.company_code, c.name, c.logo, c.industry, c.create_time
+        ORDER BY c.id ASC
+    </select>
+
+    <!-- 查询指定企业的聚合详情 -->
+    <select id="selectCompanyVOById" resultType="com.ncheck.vo.CompanyVO">
+        SELECT
+            c.id,
+            c.user_id,
+            c.company_code,
+            c.name,
+            c.logo,
+            c.industry,
+            c.create_time,
+            COUNT(e.id) AS total_count,
+            COUNT(CASE WHEN e.type = '八股文' THEN 1 END) AS bagu_count,
+            COUNT(CASE WHEN e.type = '算法题' THEN 1 END) AS algo_count,
+            COUNT(CASE WHEN e.status = '已掌握' THEN 1 END) AS mastered_count
+        FROM tb_company c
+        LEFT JOIN tb_entry e ON c.id = e.company_id AND e.user_id = c.user_id
+        WHERE c.user_id = #{userId} AND c.id = #{companyId}
+        GROUP BY c.id, c.user_id, c.company_code, c.name, c.logo, c.industry, c.create_time
+        LIMIT 1
+    </select>
+
+</mapper>

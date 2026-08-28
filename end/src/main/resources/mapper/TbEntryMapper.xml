@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ncheck.mapper.TbEntryMapper">
+
+    <!-- 多条件动态分页查询 -->
+    <select id="selectEntryVOPage" resultType="com.ncheck.vo.EntryVO">
+        SELECT
+            e.id,
+            e.user_id,
+            e.company_id,
+            c.name AS company_name,
+            c.logo AS company_logo,
+            e.type,
+            e.title,
+            e.difficulty,
+            e.status,
+            e.is_starred,
+            e.content,
+            e.last_reviewed_at,
+            e.create_time,
+            e.update_time
+        FROM tb_entry e
+        LEFT JOIN tb_company c ON e.company_id = c.id
+        WHERE e.user_id = #{userId}
+        <if test="query.companyId != null">
+            AND e.company_id = #{query.companyId}
+        </if>
+        <if test="query.type != null and query.type != ''">
+            AND e.type = #{query.type}
+        </if>
+        <if test="query.difficulty != null and query.difficulty != ''">
+            AND e.difficulty = #{query.difficulty}
+        </if>
+        <if test="query.status != null and query.status != ''">
+            AND e.status = #{query.status}
+        </if>
+        <if test="query.isStarred != null">
+            AND e.is_starred = #{query.isStarred}
+        </if>
+        <if test="query.keyword != null and query.keyword != ''">
+            AND (e.title LIKE CONCAT('%', #{query.keyword}, '%') OR e.content LIKE CONCAT('%', #{query.keyword}, '%'))
+        </if>
+        <if test="query.tag != null and query.tag != ''">
+            AND JSON_CONTAINS(e.tags, JSON_QUOTE(#{query.tag}))
+        </if>
+        ORDER BY e.create_time DESC, e.id DESC
+    </select>
+
+    <!-- 单条题目详情查询 -->
+    <select id="selectEntryVOById" resultType="com.ncheck.vo.EntryVO">
+        SELECT
+            e.id,
+            e.user_id,
+            e.company_id,
+            c.name AS company_name,
+            c.logo AS company_logo,
+            e.type,
+            e.title,
+            e.difficulty,
+            e.status,
+            e.is_starred,
+            e.content,
+            e.last_reviewed_at,
+            e.create_time,
+            e.update_time
+        FROM tb_entry e
+        LEFT JOIN tb_company c ON e.company_id = c.id
+        WHERE e.user_id = #{userId} AND e.id = #{entryId}
+        LIMIT 1
+    </select>
+
+    <!-- 智能抽题: 随机获取指定题型的题目 -->
+    <select id="selectRandomEntries" resultType="com.ncheck.vo.EntryVO">
+        SELECT
+            e.id,
+            e.user_id,
+            e.company_id,
+            c.name AS company_name,
+            c.logo AS company_logo,
+            e.type,
+            e.title,
+            e.difficulty,
+            e.status,
+            e.is_starred,
+            e.content,
+            e.last_reviewed_at,
+            e.create_time,
+            e.update_time
+        FROM tb_entry e
+        LEFT JOIN tb_company c ON e.company_id = c.id
+        WHERE e.user_id = #{userId}
+        <if test="companyId != null">
+            AND e.company_id = #{companyId}
+        </if>
+        <if test="type != null and type != ''">
+            AND e.type = #{type}
+        </if>
+        ORDER BY RAND()
+        LIMIT #{limit}
+    </select>
+
+    <!-- 按日期查询当日刷题/复习题目列表 -->
+    <select id="selectEntriesByDate" resultType="com.ncheck.vo.EntryVO">
+        SELECT
+            e.id,
+            e.user_id,
+            e.company_id,
+            c.name AS company_name,
+            c.logo AS company_logo,
+            e.type,
+            e.title,
+            e.difficulty,
+            e.status,
+            e.is_starred,
+            e.content,
+            e.last_reviewed_at,
+            e.create_time,
+            e.update_time
+        FROM tb_entry e
+        LEFT JOIN tb_company c ON e.company_id = c.id
+        WHERE e.user_id = #{userId}
+          AND (DATE_FORMAT(e.create_time, '%Y-%m-%d') = #{dateStr} OR DATE_FORMAT(e.update_time, '%Y-%m-%d') = #{dateStr})
+        ORDER BY e.update_time DESC
+    </select>
+
+    <!-- 聚合统计用户题目总数与熟练度分布 -->
+    <select id="selectUserMasteryStats" resultType="java.util.Map">
+        SELECT
+            COUNT(id) AS totalEntries,
+            COUNT(CASE WHEN status = '已掌握' THEN 1 END) AS masteredEntries,
+            COUNT(CASE WHEN status = '学习中' THEN 1 END) AS learningEntries,
+            COUNT(CASE WHEN status = '未掌握' THEN 1 END) AS unmasteredEntries,
+            COUNT(CASE WHEN is_starred = 1 THEN 1 END) AS starredEntries
+        FROM tb_entry
+        WHERE user_id = #{userId}
+    </select>
+
+</mapper>
