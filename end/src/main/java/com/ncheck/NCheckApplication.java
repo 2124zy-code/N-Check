@@ -12,7 +12,7 @@ import java.net.URI;
 public class NCheckApplication {
 
     public static void main(String[] args) {
-        // 在 Spring 容器初始化之前，自动从 Railway 注入的 MYSQL_URL / DATABASE_URL 提取真实数据库凭据
+        // 在 Spring Boot & Flyway 初始化前，全方位自适应提取并注入云端数据库连接凭据
         configureCloudDatabaseEnvironment();
 
         SpringApplication.run(NCheckApplication.class, args);
@@ -23,6 +23,7 @@ public class NCheckApplication {
     }
 
     private static void configureCloudDatabaseEnvironment() {
+        // 1. 优先尝试解析 MYSQL_URL / DATABASE_URL
         String rawMysqlUrl = System.getenv("MYSQL_URL");
         if (!StringUtils.hasText(rawMysqlUrl)) {
             rawMysqlUrl = System.getenv("DATABASE_URL");
@@ -47,17 +48,53 @@ public class NCheckApplication {
                             host, port, dbName
                     );
 
-                    System.setProperty("spring.datasource.url", jdbcUrl);
-                    System.setProperty("spring.datasource.username", username);
-                    System.setProperty("spring.datasource.password", password);
-                    System.setProperty("spring.flyway.url", jdbcUrl);
-                    System.setProperty("spring.flyway.user", username);
-                    System.setProperty("spring.flyway.password", password);
-                    log.info("Successfully configured cloud MySQL for Spring & Flyway: Host={}, Port={}, DB={}, User={}", host, port, dbName, username);
+                    applySystemProperties(jdbcUrl, username, password);
+                    log.info("Successfully configured cloud MySQL from MYSQL_URL: Host={}, Port={}, DB={}, User={}", host, port, dbName, username);
+                    return;
                 }
             } catch (Exception e) {
-                log.error("Failed to parse cloud MYSQL_URL in main", e);
+                log.error("Failed to parse cloud MYSQL_URL", e);
             }
         }
+
+        // 2. 如果没有 MYSQL_URL，尝试从离散环境变量提取 (MYSQLHOST, MYSQLPORT, MYSQL_ROOT_PASSWORD, etc.)
+        String host = getEnvAny("MYSQLHOST", "MYSQL_HOST");
+        String port = getEnvAny("MYSQLPORT", "MYSQL_PORT", "MYSQL_TCP_PORT");
+        String dbName = getEnvAny("MYSQLDATABASE", "MYSQL_DATABASE");
+        String username = getEnvAny("MYSQLUSER", "MYSQL_USER");
+        String password = getEnvAny("SPRING_DATASOURCE_PASSWORD", "MYSQL_ROOT_PASSWORD", "MYSQLPASSWORD", "MYSQL_PASSWORD");
+
+        if (StringUtils.hasText(host) && StringUtils.hasText(password)) {
+            if (!StringUtils.hasText(port)) port = "3306";
+            if (!StringUtils.hasText(dbName)) dbName = "ncheck_db";
+            if (!StringUtils.hasText(username)) username = "root";
+
+            String jdbcUrl = String.format(
+                    "jdbc:mysql://%s:%s/%s?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false",
+                    host, port, dbName
+            );
+
+            applySystemProperties(jdbcUrl, username, password);
+            log.info("Successfully configured cloud MySQL from discrete envs: Host={}, Port={}, DB={}, User={}", host, port, dbName, username);
+        }
+    }
+
+    private static void applySystemProperties(String jdbcUrl, String username, String password) {
+        System.setProperty("spring.datasource.url", jdbcUrl);
+        System.setProperty("spring.datasource.username", username);
+        System.setProperty("spring.datasource.password", password);
+        System.setProperty("spring.flyway.url", jdbcUrl);
+        System.setProperty("spring.flyway.user", username);
+        System.setProperty("spring.flyway.password", password);
+    }
+
+    private static String getEnvAny(String... keys) {
+        for (String key : keys) {
+            String val = System.getenv(key);
+            if (StringUtils.hasText(val)) {
+                return val.trim();
+            }
+        }
+        return null;
     }
 }
